@@ -26,3 +26,30 @@ function normalizeHeaderName(headers: any, normalizedName: string): void {
     }
   })
 }
+
+/**
+ * 通过 `XMLHttpRequest` 对象的 `getAllResponseHeaders` 方法
+ * 获取到的值是字符串
+ * 我们希望获得一个Object结构
+ * @param headers
+ */
+export function parseHeaders(headers: string): any {
+  let parsed = Object.create(null)
+  if (!headers) {
+    return parsed
+  }
+
+  headers.split('\r\n').forEach(line => {
+    let [key, val] = line.split(':')
+    key = key.trim().toLowerCase()
+    if (!key) {
+      return
+    }
+    if (val) {
+      val = val.trim()
+    }
+    parsed[key] = val
+  })
+
+  return parsed
+}

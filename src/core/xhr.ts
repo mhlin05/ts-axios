@@ -1,8 +1,10 @@
-import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from './types'
+import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
+import { parseHeaders } from '../helpers/headers'
+import { createError } from '../helpers/error'
 
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
-    const { data = null, url, method = 'get', headers, responseType } = config
+    const { data = null, url, method = 'get', headers, responseType, timeout } = config
     // 1、创建XMLHttpRequest异步对象
     const request = new XMLHttpRequest()
     // 2、配置请求参数
@@ -19,6 +21,9 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     if (responseType) {
       request.responseType = responseType
     }
+    if (timeout) {
+      request.timeout = timeout
+    }
     // 3、发送请求
     request.send(data)
     // 4、注册事件，获取响应数据
@@ -26,7 +31,10 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       if (request.readyState !== 4) {
         return
       }
-      const responseHeaders = request.getAllResponseHeaders()
+      if (request.status === 0) {
+        return
+      }
+      const responseHeaders = parseHeaders(request.getAllResponseHeaders())
       const responseData =
         responseType && responseType !== 'text' ? request.response : request.responseText
       const response: AxiosResponse = {
@@ -37,7 +45,29 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         config,
         request
       }
-      resolve(response)
+      handleResponse(response)
+    }
+    function handleResponse(response: AxiosResponse) {
+      if (response.status >= 200 && response.status < 300) {
+        resolve(response)
+      } else {
+        reject(
+          createError(
+            `Request failed with status code ${response.status}`,
+            config,
+            null,
+            request,
+            response
+          )
+        )
+      }
+    }
+    // 网络不通情况
+    request.onerror = function handleError() {
+      reject(createError('Network Error', config, null, request))
+    }
+    request.ontimeout = function handleTimeout() {
+      reject(createError(`Timeout of ${timeout} ms exceeded`, config, 'ECONNABORTED', request))
     }
   })
 }

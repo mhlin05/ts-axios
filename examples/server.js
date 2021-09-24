@@ -6,10 +6,22 @@ const webpackHotMiddleware = require('webpack-hot-middleware')
 const WebpackConfig = require('./webpack.config')
 
 const app = express()
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
 const compiler = webpack(WebpackConfig)
 
 const router = express.Router()
-
+app.use(webpackHotMiddleware(compiler))
+app.use(
+  webpackDevMiddleware(compiler, {
+    publicPath: '/__build__/',
+    stats: {
+      colors: true,
+      chunks: false
+    }
+  })
+)
+app.use(express.static(__dirname))
 router.get('/simple/get', function(req, res) {
   res.json({
     msg: `hello world`
@@ -23,7 +35,10 @@ router.post('/base/post', function(req, res) {
   // console.log('???')
   // console.log(res.body)
   // console.log(req)
-  res.json(111)
+  res.json({
+    a: 1,
+    b: 2
+  })
 })
 
 router.post('/base/buffer', function(req, res) {
@@ -39,25 +54,69 @@ router.post('/base/buffer', function(req, res) {
     res.json(buf.toJSON())
   })
 })
+router.get('/error/get', function(req, res) {
+  if (Math.random() > 0.5) {
+    res.json({
+      msg: `hello world`
+    })
+  } else {
+    res.status(500)
+    res.end()
+  }
+})
 
-app.use(router)
-
-app.use(
-  webpackDevMiddleware(compiler, {
-    publicPath: '/__build__/',
-    stats: {
-      colors: true,
-      chunks: false
-    }
+router.get('/error/timeout', function(req, res) {
+  setTimeout(() => {
+    res.json({
+      msg: `hello world`
+    })
+  }, 3000)
+})
+//expand interface
+// 扩展接口
+router.get('/api/expandInterface/get', function(req, res) {
+  res.json({
+    msg: 'hello world'
   })
-)
+})
 
-app.use(webpackHotMiddleware(compiler))
+router.options('/api/expandInterface/options', function(req, res) {
+  res.end()
+})
 
-app.use(express.static(__dirname))
+router.delete('/api/expandInterface/delete', function(req, res) {
+  res.end()
+})
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+router.head('/api/expandInterface/head', function(req, res) {
+  res.end()
+})
+
+router.post('/api/expandInterface/post', function(req, res) {
+  res.json(req.body)
+  // res.json('nima')
+  console.log(req.body)
+})
+
+router.put('/api/expandInterface/put', function(req, res) {
+  res.json(req.body)
+})
+
+router.patch('/api/expandInterface/patch', function(req, res) {
+  res.json(req.body)
+})
+// axios增加参数
+router.post('/api/addParameters', function(req, res) {
+  res.json(req.body)
+})
+// 响应支持泛型
+router.get('/api/getuser', function(req, res) {
+  res.json({
+    msg: 'hello world',
+    data: { name: '难凉热血', age: 18 }
+  })
+})
+app.use(router)
 
 const port = process.env.PORT || 8080
 module.exports = app.listen(port, () => {
