@@ -9,6 +9,7 @@ export interface AxiosRequestConfig {
   transformRequest?: AxiosTransformer | AxiosTransformer[]
   transformResponse?: AxiosTransformer | AxiosTransformer[]
   [propName: string]: any
+  cancelToken?: CancelToken
 }
 export interface AxiosTransformer {
   (data: any, headers?: any): any
@@ -67,6 +68,7 @@ export interface AxiosInstance extends Axios {
 
 export interface AxiosStatic extends AxiosInstance {
   create(config?: AxiosRequestConfig): AxiosInstance
+  CancelToken: CancelTokenStatic
 }
 
 export interface AxiosInterceptorManager<T> {
@@ -82,7 +84,24 @@ export interface ResolvedFn<T = any> {
 export interface RejectedFn {
   (error: any): any
 }
-
+export interface CancelToken {
+  promise: Promise<string>
+  reason?: string
+}
+export interface CancelExecutor {
+  (cancel: Canceler): void
+}
+export interface Canceler {
+  (message?: string): void
+}
+export interface CancelTokenStatic {
+  new (executor: CancelExecutor): CancelToken
+  source(): CancelTokenSource
+}
+export interface CancelTokenSource {
+  token: CancelToken
+  cancel: Canceler
+}
 export type XMLHttpRequestResponseType = '' | 'arraybuffer' | 'blob' | 'document' | 'json' | 'text'
 export type Method =
   | 'get'

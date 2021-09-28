@@ -4,7 +4,7 @@ import { createError } from '../helpers/error'
 
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
-    const { data = null, url, method = 'get', headers, responseType, timeout } = config
+    const { data = null, url, method = 'get', headers, responseType, timeout, cancelToken } = config
     // 1、创建XMLHttpRequest异步对象
     const request = new XMLHttpRequest()
     // 2、配置请求参数
@@ -26,6 +26,13 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     }
     // 3、发送请求
     request.send(data)
+    // 实现请求取消逻辑
+    if (cancelToken) {
+      cancelToken.promise.then(reason => {
+        request.abort()
+        reject(reason)
+      })
+    }
     // 4、注册事件，获取响应数据
     request.onreadystatechange = function handleLoad() {
       if (request.readyState !== 4) {

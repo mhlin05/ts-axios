@@ -128,6 +128,16 @@ router.post('/api/transformData', function(req, res) {
 router.post('/api/expandCreateInterface', function(req, res) {
   res.json(req.body)
 })
+
+// 取消请求
+router.get('/api/cancel', function(req, res) {
+  setTimeout(() => {
+    res.json({
+      msg: `hello world`
+    })
+  }, 3000)
+})
+
 app.use(router)
 
 const port = process.env.PORT || 8080
