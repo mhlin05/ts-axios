@@ -8,6 +8,7 @@ import {
 } from '../types'
 import InterceptorManager from './interceptorManager'
 import dispatchRequest from './dispatchRequest'
+import mergeConfig from './mergeConfig'
 
 interface PromiseArr<T> {
   resolved: ResolvedFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
@@ -15,11 +16,13 @@ interface PromiseArr<T> {
 }
 
 export default class Axios {
-  private interceptors: {
+  defaults: AxiosRequestConfig
+  interceptors: {
     request: InterceptorManager<AxiosRequestConfig>
     response: InterceptorManager<AxiosResponse<any>>
   }
-  constructor() {
+  constructor(defaultConfig: AxiosRequestConfig) {
+    this.defaults = defaultConfig
     this.interceptors = {
       request: new InterceptorManager<AxiosRequestConfig>(),
       response: new InterceptorManager<AxiosResponse>()
@@ -33,6 +36,8 @@ export default class Axios {
     } else {
       config = url
     }
+    // 合并用户配置和默认配置
+    config = mergeConfig(this.defaults, config)
 
     // 先把dispatchRequest存入，发送数据
     let arr: PromiseArr<any>[] = [

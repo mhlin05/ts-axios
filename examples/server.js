@@ -116,6 +116,18 @@ router.get('/api/getuser', function(req, res) {
     data: { name: '难凉热血', age: 18 }
   })
 })
+// 默认配置合并
+router.post('/api/mergeConfig', function(req, res) {
+  res.json(req.body)
+})
+// 添加transformRequest 和 transformResponse
+router.post('/api/transformData', function(req, res) {
+  res.json(req.body)
+})
+// 添加create接口
+router.post('/api/expandCreateInterface', function(req, res) {
+  res.json(req.body)
+})
 app.use(router)
 
 const port = process.env.PORT || 8080
