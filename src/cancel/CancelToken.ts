@@ -1,12 +1,13 @@
 import { Canceler, CancelExecutor, CancelTokenSource } from '../types'
+import Cancel from './Cancel'
 
 interface ResolvePromise {
-  (reason?: string): void
+  (reason?: Cancel): void
 }
 
 export default class CancelToken {
   promise: Promise<string>
-  reason?: string
+  reason?: Cancel
   constructor(executor: CancelExecutor) {
     let resolvePromise: ResolvePromise
     // 首先实例化了一个 pending 状态的 Promise 对象，
@@ -19,7 +20,7 @@ export default class CancelToken {
       if (this.reason) {
         return
       }
-      this.reason = message
+      this.reason = new Cancel(message!)
       resolvePromise(this.reason)
     })
   }
@@ -32,6 +33,11 @@ export default class CancelToken {
     return {
       cancel,
       token
+    }
+  }
+  throwIfRequested(): void {
+    if (this.reason) {
+      throw this.reason
     }
   }
 }

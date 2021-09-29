@@ -6,12 +6,19 @@ import transform from './transform'
 import xhr from './xhr'
 
 function dispatchRequest(config: AxiosRequestConfig): AxiosPromise {
+  throwIfCancellationRequested(config)
   // 处理config
   processConfig(config)
   //   发送请求
   return xhr(config).then(res => {
     return transformResponseData(res)
   })
+}
+// 如果已经请求取消，则抛出异常。
+function throwIfCancellationRequested(config: AxiosRequestConfig) {
+  if (config.cancelToken) {
+    config.cancelToken.throwIfRequested()
+  }
 }
 
 function processConfig(config: AxiosRequestConfig): void {

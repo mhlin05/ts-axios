@@ -69,6 +69,8 @@ export interface AxiosInstance extends Axios {
 export interface AxiosStatic extends AxiosInstance {
   create(config?: AxiosRequestConfig): AxiosInstance
   CancelToken: CancelTokenStatic
+  Cancel: CancelStatic
+  isCancel: (value: any) => boolean
 }
 
 export interface AxiosInterceptorManager<T> {
@@ -86,7 +88,9 @@ export interface RejectedFn {
 }
 export interface CancelToken {
   promise: Promise<string>
-  reason?: string
+  reason?: Cancel
+
+  throwIfRequested(): void
 }
 export interface CancelExecutor {
   (cancel: Canceler): void
@@ -101,6 +105,14 @@ export interface CancelTokenStatic {
 export interface CancelTokenSource {
   token: CancelToken
   cancel: Canceler
+}
+// Cancel类的实例 类型
+export interface Cancel {
+  message?: string
+}
+// Cancel类的 类类型
+export interface CancelStatic {
+  new (message?: string): Cancel
 }
 export type XMLHttpRequestResponseType = '' | 'arraybuffer' | 'blob' | 'document' | 'json' | 'text'
 export type Method =
