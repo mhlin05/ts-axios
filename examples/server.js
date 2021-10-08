@@ -146,6 +146,50 @@ router.get('/more/get', function(req, res) {
   console.log(req.cookies)
   res.json(req.cookies)
 })
+// const multipart = require('connect-multiparty')
+// app.use(
+//   multipart({
+//     uploadDir: path.resolve(__dirname, 'upload-file')
+//   })
+// )
+// 文件下载
+router.get('/api/downloadFile', function(req, res) {
+  res.sendFile(__dirname + '/1.jpg')
+})
+router.post('/api/uploadFile', function(req, res) {
+  console.log(req.body, req.files)
+  res.end('upload success!')
+})
+
+const atob = require('atob')
+// 添加HTTP授权
+router.get('/api/HTTPAuthorization', function(req, res) {
+  const auth = req.headers.Authorization
+  if (typeof auth !== 'string') {
+    res.json({ a: 12312 })
+    return
+  }
+  const [type, credentials] = auth.split(' ')
+
+  const arr = atob(credentials).split(':')
+  // const [username, password] = atob(credentials).split(':')
+  console.log({
+    username: arr[0],
+    password: arr[1]
+  })
+  res.json({
+    type: type,
+    username: arr[0],
+    password: arr[1]
+  })
+})
+
+// 请求状态码合法性校验
+router.get('/more/304', function(req, res) {
+  res.status(304)
+  res.end()
+})
+
 app.use(router)
 
 const port = process.env.PORT || 8080

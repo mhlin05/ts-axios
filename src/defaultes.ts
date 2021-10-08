@@ -4,6 +4,9 @@ import { AxiosRequestConfig } from './types'
 import { processHeaders } from './helpers/headers'
 import { transformRequest, transformResponse } from './helpers/data'
 const defaults: AxiosRequestConfig = {
+  validateStatus(status: Number): boolean {
+    return status >= 200 && status < 300
+  },
   timeout: 0,
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',

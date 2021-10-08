@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
 import { parseHeaders } from '../helpers/headers'
 import { createError } from '../helpers/error'
+import { isFormData } from '../helpers/util'
 import isURLSameOrigin from '../helpers/isURLSameOrigin'
 import cookies from '../helpers/cookies'
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
@@ -15,12 +16,33 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       cancelToken,
       withCredentials,
       xsrfCookieName,
-      xsrfHeaderName
+      xsrfHeaderName,
+      onDownloadProgress,
+      onUploadProgress,
+      auth,
+      validateStatus
     } = config
     // 1、创建XMLHttpRequest异步对象
     const request = new XMLHttpRequest()
     // 2、配置请求参数
     request.open(method.toUpperCase(), url!, true)
+    // 通过FormData上传文件时 Content-Type不能用
+    if (isFormData(data)) {
+      delete headers['Content-Type']
+    }
+    let xsrfValue =
+      (withCredentials || isURLSameOrigin(url!)) && xsrfCookieName
+        ? cookies.read(xsrfCookieName)
+        : undefined
+
+    if (xsrfValue) {
+      headers[xsrfHeaderName!] = xsrfValue
+    }
+    if (auth) {
+      const username = auth.username || ''
+      const password = auth.password || ''
+      headers['Authorization'] = 'Basic ' + btoa(username + ':' + password)
+    }
     // 给请求添加header
     Object.keys(headers).forEach(name => {
       // 如果data为null content-type没有存在的意义
@@ -39,14 +61,20 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     if (withCredentials) {
       request.withCredentials = true
     }
-    let xsrfValue =
-      (withCredentials || isURLSameOrigin(url!)) && xsrfCookieName
-        ? cookies.read(xsrfCookieName)
-        : undefined
 
-    if (xsrfValue) {
-      headers[xsrfHeaderName!] = xsrfValue
+    // 下载上传进度设置
+    if (onDownloadProgress) {
+      request.onprogress = onDownloadProgress
     }
+
+    if (onUploadProgress) {
+      request.upload.onprogress = onUploadProgress
+    }
+    // if (auth) {
+    //   const username = auth.username || ''
+    //   const password = auth.password || ''
+    //   headers['Authorization'] = 'Basic ' + btoa(username + ':' + password)
+    // }
     // 3、发送请求
     request.send(data)
     // 实现请求取消逻辑
@@ -77,8 +105,8 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       }
       handleResponse(response)
     }
-    function handleResponse(response: AxiosResponse) {
-      if (response.status >= 200 && response.status < 300) {
+    function handleResponse(response: AxiosResponse): void {
+      if (!validateStatus || validateStatus(response.status)) {
         resolve(response)
       } else {
         reject(
@@ -86,7 +114,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             `Request failed with status code ${response.status}`,
             config,
             null,
-            request,
+            request.status,
             response
           )
         )

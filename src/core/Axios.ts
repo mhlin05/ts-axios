@@ -60,13 +60,13 @@ export default class Axios {
     })
     // 这里放入了config
     let promise = Promise.resolve(config)
-    console.log(promise)
+    // console.log(promise)
     // Promise一直不断then 会把config的配置不断更新
     // 因为 resolve一个Promise对象返回的是这个Promise的结果和值
     while (arr.length) {
       const { resolved, rejected } = arr.shift()!
       promise = promise.then(resolved, rejected)
-      console.log(promise)
+      // console.log(promise)
     }
 
     return promise
