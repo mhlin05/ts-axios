@@ -137,7 +137,15 @@ router.get('/api/cancel', function(req, res) {
     })
   }, 3000)
 })
-
+// 防御XSRF
+router.get('/api/defendXSRF', function(req, res) {
+  res.cookie('XSRF-NLRX', 'NLRX')
+  res.json(req.cookies)
+})
+router.get('/more/get', function(req, res) {
+  console.log(req.cookies)
+  res.json(req.cookies)
+})
 app.use(router)
 
 const port = process.env.PORT || 8080

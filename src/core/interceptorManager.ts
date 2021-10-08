@@ -8,7 +8,7 @@ interface Interceptor<T> {
 }
 export default class InterceptorManager<T> {
   // 存放所有拦截器
-  private interceptors: Array<Interceptor<T> | null>
+  interceptors: Array<Interceptor<T> | null>
 
   constructor() {
     this.interceptors = []

@@ -13,6 +13,19 @@ module.exports = {
    * entries 收集了多目录个入口文件，并且每个入口还引入了一个用于热更新的文件
    * entries 是一个对象，key 为目录名
    */
+
+  devServer: {
+    noInfo: true,
+    overlay: true,
+    open: true
+    // proxy: { // 配置跨域
+    //   '/api/': {
+    //     target: 'http://192.168.1.2:3000',
+    //     ws: true,
+    //     changOrigin: true
+    //   },
+    // }
+  },
   entry: fs.readdirSync(__dirname).reduce((entries, dir) => {
     const fullDir = path.join(__dirname, dir)
     const entry = path.join(fullDir, 'app.ts')

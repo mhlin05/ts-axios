@@ -1,14 +1,26 @@
 import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
 import { parseHeaders } from '../helpers/headers'
 import { createError } from '../helpers/error'
-
+import isURLSameOrigin from '../helpers/isURLSameOrigin'
+import cookies from '../helpers/cookies'
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
-    const { data = null, url, method = 'get', headers, responseType, timeout, cancelToken } = config
+    const {
+      data = null,
+      url,
+      method = 'get',
+      headers,
+      responseType,
+      timeout,
+      cancelToken,
+      withCredentials,
+      xsrfCookieName,
+      xsrfHeaderName
+    } = config
     // 1、创建XMLHttpRequest异步对象
     const request = new XMLHttpRequest()
     // 2、配置请求参数
-    request.open(method.toUpperCase(), url, true)
+    request.open(method.toUpperCase(), url!, true)
     // 给请求添加header
     Object.keys(headers).forEach(name => {
       // 如果data为null content-type没有存在的意义
@@ -23,6 +35,17 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     }
     if (timeout) {
       request.timeout = timeout
+    }
+    if (withCredentials) {
+      request.withCredentials = true
+    }
+    let xsrfValue =
+      (withCredentials || isURLSameOrigin(url!)) && xsrfCookieName
+        ? cookies.read(xsrfCookieName)
+        : undefined
+
+    if (xsrfValue) {
+      headers[xsrfHeaderName!] = xsrfValue
     }
     // 3、发送请求
     request.send(data)

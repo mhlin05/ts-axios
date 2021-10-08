@@ -34,7 +34,7 @@ function transformResponseData(res: AxiosResponse): AxiosResponse {
 // 处理使用params的情况
 function transformUrl(config: AxiosRequestConfig): string {
   const { url, params } = config
-  return bulidURL(url, params)
+  return bulidURL(url!, params)
 }
 // 处理使用data的情况
 function transformRequestData(config: AxiosRequestConfig): any {
